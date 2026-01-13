@@ -1,26 +1,38 @@
-// src/components/RewardsPage.jsx
 import React from "react";
+import "./RewardsPage.css"; // Make sure to create this file or update it
 
-export default function RewardsPage({ stars }) {
+export default function RewardsPage({ stars, favCartoon }) {
   const badges = [
-    { name: "Bronze", minStars: 3 },
-    { name: "Silver", minStars: 5 },
-    { name: "Gold", minStars: 8 },
+    { name: "Bronze", minStars: 3, color: "#cd7f32" },
+    { name: "Silver", minStars: 5, color: "#c0c0c0" },
+    { name: "Gold", minStars: 8, color: "#ffd700" },
   ];
 
   return (
-    <div style={{ padding: "20px", textAlign: "center" }}>
-      <h2>🎁 Rewards</h2>
-      <div style={{ display: "flex", justifyContent: "center", gap: "20px", flexWrap: "wrap" }}>
-        {badges.map((b, idx) => (
-          stars >= b.minStars ? (
-            <div key={idx} className="badge">
-              {b.name} Badge 🏅
-            </div>
-          ) : null
-        ))}
+    <div className="rewards-page">
+      {/* Big cute congratulatory message */}
+      <div className="congrats-message">
+        <h1>🎉 Yay, {favCartoon} says Congrats! 🎉</h1>
+        <p>You're doing amazing! Keep earning those stars! 🌟</p>
       </div>
-      <p>Total Stars: {stars}</p>
+
+      {/* Badge display */}
+      <div className="badge-container">
+        {badges.map(
+          (b, idx) =>
+            stars >= b.minStars && (
+              <div
+                key={idx}
+                className="badge"
+                style={{ background: `radial-gradient(circle at top left, ${b.color}, #fff)` }}
+              >
+                {b.name}🏅
+              </div>
+            )
+        )}
+      </div>
+
+      <p className="total-stars">Total Stars: {stars} ⭐</p>
     </div>
   );
 }

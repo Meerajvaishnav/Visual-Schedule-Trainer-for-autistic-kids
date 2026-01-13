@@ -1,29 +1,27 @@
-// src/components/RoutinePage.jsx
 import React from "react";
+import "./RoutinePage.css";
 
-export default function RoutinePage({ tasks, setTasks }) {
+export default function RoutinePage({ tasks }) {
   const times = ["morning", "afternoon", "evening"];
 
-  const assignTime = (index, time) => {
-    const updated = [...tasks];
-    updated[index].time = time;
-    setTasks(updated);
-  };
-
   return (
-    <div style={{ padding: "20px" }}>
+    <div className="routine-page">
       <h2>🗓 Daily Routine</h2>
-      {times.map(time => (
-        <div key={time}>
+      {times.map((time) => (
+        <div key={time} className="time-section">
           <h3>{time.charAt(0).toUpperCase() + time.slice(1)}</h3>
           <ul>
-            {tasks.filter(t => t.time === time).map((task, i) => (
-              <li key={i}>{task.name}</li>
-            ))}
+            {tasks
+              .filter((t) => t.time === time)
+              .map((task, i) => (
+                <li key={i}>
+                  <input type="checkbox" checked={task.done} readOnly /> {task.name}
+                </li>
+              ))}
           </ul>
         </div>
       ))}
-      <p>To assign a time slot, edit tasks in the Dashboard.</p>
+      <p>✨ To assign a time slot, edit tasks in the Dashboard.</p>
     </div>
   );
 }
