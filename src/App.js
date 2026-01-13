@@ -30,7 +30,6 @@ export default function App() {
     }
   };
 
-
   const defaultTasks = [
     "Brush Teeth 🪥",
     "Eat Breakfast 🍳",
@@ -50,6 +49,7 @@ export default function App() {
     setTaskName("");
   };
 
+  const [graffiti, setGraffiti] = useState(null);
   const completeTask = (i) => {
     const updated = [...tasks];
     updated[i].done = !updated[i].done;
@@ -57,6 +57,8 @@ export default function App() {
 
     if (updated[i].done) {
       setStars((prev) => prev + 1);
+      setGraffiti(updated[i].name);
+      setTimeout(() => setGraffiti(null), 800);
     } else {
       setStars((prev) => Math.max(prev - 1, 0));
     }
@@ -81,32 +83,32 @@ export default function App() {
     return (
       <div className="login">
         <h1>🌈 Visual Schedule Trainer</h1>
-        <h2>Child Login</h2>
+        <h2>Login to start your fun filled day</h2>
 
         <input
           type="text"
-          placeholder="Child's Name"
+          placeholder="What is your Name?"
           value={childName}
           onChange={(e) => setChildName(e.target.value)}
         />
 
         <input
           type="number"
-          placeholder="Age"
+          placeholder="How old are you?"
           value={age}
           onChange={(e) => setAge(e.target.value)}
         />
 
         <input
           type="text"
-          placeholder="Favourite Colour (e.g. lightblue)"
+          placeholder="Your favourite Colour? (except black and white)"
           value={favColor}
           onChange={(e) => setFavColor(e.target.value)}
         />
 
         <input
           type="text"
-          placeholder="Favourite Cartoon Character"
+          placeholder="Who is your favourite Cartoon Character?"
           value={favCartoon}
           onChange={(e) => setFavCartoon(e.target.value)}
         />
@@ -125,7 +127,7 @@ export default function App() {
             setLoggedIn(true);
           }}
         >
-          Start My Day 🌟
+          Start my Day 🌟
         </button>
       </div>
     );
@@ -169,12 +171,19 @@ export default function App() {
         <div className="dashboard-dropdown">
           <h3>Child Details</h3>
           <p>🎂 Age: {age}</p>
-          <p>📺 Favourite Cartoon: {favCartoon}</p>
+          <p>📺 Favourite Cartoon Charater: {favCartoon}</p>
           <p>🎨 Favourite Colour: {favColor}</p>
           <p>⭐ Stars: {stars}</p>
           <p>📝 Total Tasks: {totalTasks}</p>
         </div>
       )}
+
+      {/* Graffiti Pop-up */}
+        {graffiti && (
+          <div className="graffiti">
+            ✨ {graffiti} Completed! ✨
+          </div>
+        )}
 
       <h1>Schedule Trainer</h1>
 
@@ -256,7 +265,6 @@ export default function App() {
         </div>
       </div>
     </div>
-
 
       {/* Bottom Row: Rewards */}
       <div className="bottom-section">
