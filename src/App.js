@@ -19,6 +19,25 @@ export default function App() {
     ), ${color}`;
   };
 
+  const defaultTasks = [
+  "Brush Teeth 🪥",
+  "Eat Breakfast 🍳",
+  "Eat Lunch 🍲",
+  "Eat Dinner 🍽️",
+  "Make Bed 🛏️",
+  "Read a my Favorite Book 📖",
+  "Do Homework ✏️",
+  "Play Outside ⚽",
+  "Drink Water 💧",
+  "Clean Room 🧹",
+  "Get Dressed 👕",
+  "Pack Bag 🎒",
+  "Wash Hands 🧼",
+  "Take a Shower 🚿",
+  "Go to Sleep 💤"
+];
+
+
   const addTask = () => {
     if (taskName.trim() === "") return;
     setTasks([...tasks, { name: taskName, done: false }]);
@@ -128,11 +147,24 @@ export default function App() {
 
       {/* Add Task */}
       <div className="add-task">
-        <input
+        <select
           value={taskName}
           onChange={(e) => setTaskName(e.target.value)}
-          placeholder="Add Routine Task (e.g. Brush Teeth 🪥)"
+        >
+          <option value="">Select a Task</option>
+          {defaultTasks.map((task, idx) => (
+            <option key={idx} value={task}>
+              {task}
+            </option>
+          ))}
+        </select>
+        <input
+          type="text"
+          placeholder="Or write your own task"
+          value={taskName}
+          onChange={(e) => setTaskName(e.target.value)}
         />
+
         <button onClick={addTask}>Add Task</button>
       </div>
 
