@@ -1,6 +1,11 @@
 import React, { useState } from "react";
+import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import ProfilePage from "./components/ProfilePage";
+import RewardsPage from "./components/RewardsPage";
+import RoutinePage from "./components/RoutinePage";
 
 export default function App() {
+  // ------------------ STATE ------------------
   const [loggedIn, setLoggedIn] = useState(false);
   const [stars, setStars] = useState(0);
   const [tasks, setTasks] = useState([]);
@@ -13,20 +18,6 @@ export default function App() {
   const [favCartoon, setFavCartoon] = useState("");
 
   const [showDashboard, setShowDashboard] = useState(false);
-
-  const pastelColor = (color) => {
-    return `linear-gradient(
-      rgba(255,255,255,0.7),
-      rgba(255,255,255,0.7)
-    ), ${color}`;
-  };
-  const deleteTask = (index) => {
-    const updated = tasks.filter((_, i) => i !== index);
-    setTasks(updated);
-    if (tasks[index].done) {
-      setStars((prev) => Math.max(prev - 1, 0));
-    }
-  };
 
   const defaultTasks = [
     "Brush Teeth 🪥",
@@ -41,19 +32,35 @@ export default function App() {
     "Clean Room 🧹",
   ];
 
+  const pastelColor = (color) => {
+    return `linear-gradient(
+      rgba(255,255,255,0.7),
+      rgba(255,255,255,0.7)
+    ), ${color}`;
+  };
+
+  // ------------------ TASK FUNCTIONS ------------------
   const addTask = () => {
     if (taskName.trim() === "") return;
     setTasks([...tasks, { name: taskName, done: false }]);
     setTaskName("");
   };
+
+  const deleteTask = (index) => {
+    const updated = tasks.filter((_, i) => i !== index);
+    setTasks(updated);
+    if (tasks[index].done) {
+      setStars((prev) => Math.max(prev - 1, 0));
+    }
+  };
+
   const completeTask = (i) => {
     const updated = [...tasks];
     updated[i].done = !updated[i].done;
     setTasks(updated);
-
     if (updated[i].done) {
       setStars((prev) => prev + 1);
-      } else {
+    } else {
       setStars((prev) => Math.max(prev - 1, 0));
     }
   };
@@ -72,7 +79,90 @@ export default function App() {
     setDragIndex(null);
   };
 
-  // LOGIN SCREEN
+  // ------------------ ROUTER ------------------
+  return (
+    <Router>
+      {/* NAVBAR */}
+      {loggedIn && (
+        <nav style={{ padding: "10px 20px", backgroundColor: "#fff", boxShadow: "0 2px 6px rgba(0,0,0,0.1)" }}>
+          <Link to="/" style={{ marginRight: "15px" }}>Dashboard</Link>
+          <Link to="/profile" style={{ marginRight: "15px" }}>Profile</Link>
+          <Link to="/rewards" style={{ marginRight: "15px" }}>Rewards</Link>
+          <Link to="/routine">Routine</Link>
+          <button
+            onClick={() => setLoggedIn(false)}
+            style={{ float: "right", backgroundColor: "#f44336", color: "white", border: "none", padding: "5px 10px", borderRadius: "6px" }}
+          >
+            Logout
+          </button>
+        </nav>
+      )}
+
+      <Routes>
+        <Route
+          path="/"
+          element={
+            <Dashboard
+              tasks={tasks}
+              setTasks={setTasks}
+              taskName={taskName}
+              setTaskName={setTaskName}
+              addTask={addTask}
+              completeTask={completeTask}
+              deleteTask={deleteTask}
+              dragIndex={dragIndex}
+              setDragIndex={setDragIndex}
+              onDragStart={onDragStart}
+              onDrop={onDrop}
+              stars={stars}
+              childName={childName}
+              setChildName={setChildName}
+              age={age}
+              setAge={setAge}
+              favColor={favColor}
+              setFavColor={setFavColor}
+              favCartoon={favCartoon}
+              setFavCartoon={setFavCartoon}
+              showDashboard={showDashboard}
+              setShowDashboard={setShowDashboard}
+              loggedIn={loggedIn}
+              setLoggedIn={setLoggedIn}
+              defaultTasks={defaultTasks}
+              pastelColor={pastelColor}
+            />
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <ProfilePage
+              childName={childName}
+              age={age}
+              favColor={favColor}
+              favCartoon={favCartoon}
+              setProfile={({ childName: n, age: a, favColor: c, favCartoon: f }) => {
+                setChildName(n); setAge(a); setFavColor(c); setFavCartoon(f);
+              }}
+            />
+          }
+        />
+        <Route path="/rewards" element={<RewardsPage stars={stars} />} />
+        <Route path="/routine" element={<RoutinePage tasks={tasks} setTasks={setTasks} />} />
+      </Routes>
+    </Router>
+  );
+}
+
+// ------------------ DASHBOARD ------------------
+function Dashboard({
+  tasks, setTasks, taskName, setTaskName, addTask, completeTask,
+  deleteTask, dragIndex, setDragIndex, onDragStart, onDrop,
+  stars, childName, setChildName, age, setAge,
+  favColor, setFavColor, favCartoon, setFavCartoon,
+  showDashboard, setShowDashboard, loggedIn, setLoggedIn,
+  defaultTasks, pastelColor
+}) {
+  // ------------------ LOGIN ------------------
   if (!loggedIn) {
     return (
       <div className="login">
@@ -165,7 +255,7 @@ export default function App() {
         <div className="dashboard-dropdown">
           <h3>Child Details</h3>
           <p>🎂 Age: {age}</p>
-          <p>📺 Favourite Cartoon Charater: {favCartoon}</p>
+          <p>📺 Favourite Cartoon Character: {favCartoon}</p>
           <p>🎨 Favourite Colour: {favColor}</p>
           <p>⭐ Stars: {stars}</p>
           <p>📝 Total Tasks: {totalTasks}</p>
@@ -174,84 +264,84 @@ export default function App() {
 
       <h1>Schedule Trainer</h1>
 
-      {/* Add Task Section (on top of both columns) */}
-    <div className="add-task-global">
-      <select
-        value={taskName}
-        onChange={(e) => setTaskName(e.target.value)}
-      >
-        <option value="">Select a Task</option>
-        {defaultTasks.map((task, idx) => (
-          <option key={idx} value={task}>
-            {task}
-          </option>
-        ))}
-      </select>
-      <input
-        type="text"
-        placeholder="Or write your own task"
-        value={taskName}
-        onChange={(e) => setTaskName(e.target.value)}
-      />
-      <button onClick={addTask}>Add Task</button>
-    </div>
-
-    {/* Tasks Section */}
-    <div className="task-section">
-      {/* Tasks Column */}
-      <div className="tasks-column">
-        <h2 className="section-title">📝 Tasks</h2>
-
-        <div className="task-list">
-          {tasks
-            .map((task, i) => ({ ...task, index: i }))
-            .filter((task) => !task.done)
-            .map((task) => (
-              <div
-                key={task.index}
-                draggable
-                onDragStart={() => onDragStart(task.index)}
-                onDragOver={(e) => e.preventDefault()}
-                onDrop={() => onDrop(task.index)}
-                className="task"
-              >
-                <input
-                  type="checkbox"
-                  onChange={() => completeTask(task.index)}
-                />
-                <span>{task.name}</span>
-                <button
-                  className="delete-task-btn"
-                  onClick={() => deleteTask(task.index)}
-                >
-                  🗑️
-                </button>
-              </div>
-            ))}
-        </div>
+      {/* Add Task Section */}
+      <div className="add-task-global">
+        <select
+          value={taskName}
+          onChange={(e) => setTaskName(e.target.value)}
+        >
+          <option value="">Select a Task</option>
+          {defaultTasks.map((task, idx) => (
+            <option key={idx} value={task}>
+              {task}
+            </option>
+          ))}
+        </select>
+        <input
+          type="text"
+          placeholder="Or write your own task"
+          value={taskName}
+          onChange={(e) => setTaskName(e.target.value)}
+        />
+        <button onClick={addTask}>Add Task</button>
       </div>
 
-      {/* Completed Column */}
-      <div className="completed-column">
-        <h2 className="section-title">✅ Completed</h2>
-        <div className="task-list">
-          {tasks
-            .map((task, i) => ({ ...task, index: i }))
-            .filter((task) => task.done)
-            .map((task) => (
-              <div key={task.index} className="task done">
-                <span>✔ {task.name}</span>
-                <button
-                  className="delete-task-btn"
-                  onClick={() => deleteTask(task.index)}
+      {/* Tasks Section */}
+      <div className="task-section">
+        {/* Tasks Column */}
+        <div className="tasks-column">
+          <h2 className="section-title">📝 Tasks</h2>
+
+          <div className="task-list">
+            {tasks
+              .map((task, i) => ({ ...task, index: i }))
+              .filter((task) => !task.done)
+              .map((task) => (
+                <div
+                  key={task.index}
+                  draggable
+                  onDragStart={() => onDragStart(task.index)}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={() => onDrop(task.index)}
+                  className="task"
                 >
-                  🗑️
-                </button>
-              </div>
-            ))}
+                  <input
+                    type="checkbox"
+                    onChange={() => completeTask(task.index)}
+                  />
+                  <span>{task.name}</span>
+                  <button
+                    className="delete-task-btn"
+                    onClick={() => deleteTask(task.index)}
+                  >
+                    🗑️
+                  </button>
+                </div>
+              ))}
+          </div>
+        </div>
+
+        {/* Completed Column */}
+        <div className="completed-column">
+          <h2 className="section-title">✅ Completed</h2>
+          <div className="task-list">
+            {tasks
+              .map((task, i) => ({ ...task, index: i }))
+              .filter((task) => task.done)
+              .map((task) => (
+                <div key={task.index} className="task done">
+                  <span>✔ {task.name}</span>
+                  <button
+                    className="delete-task-btn"
+                    onClick={() => deleteTask(task.index)}
+                  >
+                    🗑️
+                  </button>
+                </div>
+              ))}
+          </div>
         </div>
       </div>
-    </div>
 
       {/* Bottom Row: Rewards */}
       <div className="bottom-section">

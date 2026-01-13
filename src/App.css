@@ -326,3 +326,18 @@ body {
   cursor: pointer;
   font-size: 14px;
 }
+/* Add to your existing CSS */
+.badge {
+  display: inline-block;
+  padding: 20px;
+  border-radius: 50%;
+  background: gold;
+  margin: 10px;
+  animation: pop 0.5s ease;
+  font-weight: bold;
+}
+@keyframes pop {
+  0% { transform: scale(0); }
+  70% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
