@@ -12,31 +12,37 @@ export default function App() {
   const [favColor, setFavColor] = useState("");
   const [favCartoon, setFavCartoon] = useState("");
 
+  const [showDashboard, setShowDashboard] = useState(false);
+
   const pastelColor = (color) => {
     return `linear-gradient(
       rgba(255,255,255,0.7),
       rgba(255,255,255,0.7)
     ), ${color}`;
   };
+  const deleteTask = (index) => {
+    const updated = tasks.filter((_, i) => i !== index);
+    setTasks(updated);
+
+    // Optional: adjust stars if the deleted task was completed
+    if (tasks[index].done) {
+      setStars((prev) => Math.max(prev - 1, 0));
+    }
+  };
+
 
   const defaultTasks = [
-  "Brush Teeth 🪥",
-  "Eat Breakfast 🍳",
-  "Eat Lunch 🍲",
-  "Eat Dinner 🍽️",
-  "Make Bed 🛏️",
-  "Read a my Favorite Book 📖",
-  "Do Homework ✏️",
-  "Play Outside ⚽",
-  "Drink Water 💧",
-  "Clean Room 🧹",
-  "Get Dressed 👕",
-  "Pack Bag 🎒",
-  "Wash Hands 🧼",
-  "Take a Shower 🚿",
-  "Go to Sleep 💤"
-];
-
+    "Brush Teeth 🪥",
+    "Eat Breakfast 🍳",
+    "Eat Lunch 🍲",
+    "Eat Dinner 🍽️",
+    "Make Bed 🛏️",
+    "Read a Book 📖",
+    "Do Homework ✏️",
+    "Play Outside ⚽",
+    "Drink Water 💧",
+    "Clean Room 🧹",
+  ];
 
   const addTask = () => {
     if (taskName.trim() === "") return;
@@ -45,16 +51,16 @@ export default function App() {
   };
 
   const completeTask = (i) => {
-  const updated = [...tasks];
-  updated[i].done = !updated[i].done;
-  setTasks(updated);
+    const updated = [...tasks];
+    updated[i].done = !updated[i].done;
+    setTasks(updated);
 
-  if (updated[i].done) {
-    setStars((prev) => prev + 1);
-  } else {
-    setStars((prev) => Math.max(prev - 1, 0));
-  }
-};
+    if (updated[i].done) {
+      setStars((prev) => prev + 1);
+    } else {
+      setStars((prev) => Math.max(prev - 1, 0));
+    }
+  };
 
   const onDragStart = (index) => {
     setDragIndex(index);
@@ -125,94 +131,141 @@ export default function App() {
     );
   }
 
-  // DASHBOARD
+  const totalTasks = tasks.length;
+  const completedTasks = tasks.filter((t) => t.done).length;
+
   return (
     <div
       className="container"
       style={{
         background: pastelColor(favColor),
         minHeight: "100vh",
-        width: "100vw"
+        width: "100vw",
+        paddingTop: "70px",
       }}
     >
-      <h1 className="dashboard-title">Dashboard</h1>
-
-      {/* Profile Card */}
-      <div className="profile-card">
-        <h2>👦 {childName}</h2>
-        <p>🎂 Age: {age}</p>
-        <p>📺 Favourite Cartoon: {favCartoon}</p>
-        <p>🎨 Favourite Colour: {favColor}</p>
-      </div>
-
-      {/* Add Task */}
-      <div className="add-task">
-        <select
-          value={taskName}
-          onChange={(e) => setTaskName(e.target.value)}
+      {/* MENU BAR */}
+      <div className="menu-bar">
+        <button
+          className="dashboard-button"
+          style={{ backgroundColor: favColor }}
+          onClick={() => setShowDashboard(prev => !prev)}
         >
-          <option value="">Select a Task</option>
-          {defaultTasks.map((task, idx) => (
-            <option key={idx} value={task}>
-              {task}
-            </option>
-          ))}
-        </select>
-        <input
-          type="text"
-          placeholder="Or write your own task"
-          value={taskName}
-          onChange={(e) => setTaskName(e.target.value)}
-        />
+          {childName}'s Dashboard
+        </button>
 
-        <button onClick={addTask}>Add Task</button>
+        <div className="menu-info">
+          <span>⭐ Stars: {stars}</span>
+          <span>✅ Completed: {completedTasks}</span>
+        </div>
+
+        <div className="menu-actions">
+          <button onClick={() => setLoggedIn(false)}>Logout</button>
+        </div>
       </div>
 
-      {/* Stars */}
-      <div className="stars">⭐ Stars: {stars}</div>
+      {/* DASHBOARD DROPDOWN */}
+      {showDashboard && (
+        <div className="dashboard-dropdown">
+          <h3>Child Details</h3>
+          <p>🎂 Age: {age}</p>
+          <p>📺 Favourite Cartoon: {favCartoon}</p>
+          <p>🎨 Favourite Colour: {favColor}</p>
+          <p>⭐ Stars: {stars}</p>
+          <p>📝 Total Tasks: {totalTasks}</p>
+        </div>
+      )}
 
-      {/* Visual Timetable */}
-      <h2 className="section-title">📝 Tasks</h2>
-      <div className="task-list">
-        {tasks
-          .map((task, i) => ({ ...task, index: i }))
-          .filter((task) => !task.done)
-          .map((task) => (
-            <div
-              key={task.index}
-              draggable
-              onDragStart={() => onDragStart(task.index)}
-              onDragOver={(e) => e.preventDefault()}
-              onDrop={() => onDrop(task.index)}
-              className="task"
-            >
-              <input
-                type="checkbox"
-                onChange={() => completeTask(task.index)}
-              />
-              <span>{task.name}</span>
-            </div>
-          ))}
-      </div>
+      <h1>Schedule Trainer</h1>
 
-    <h2 className="section-title">✅ Completed</h2>
-    <div className="task-list">
-      {tasks
-        .map((task, i) => ({ ...task, index: i }))
-        .filter((task) => task.done)
-        .map((task) => (
-          <div key={task.index} className="task done">
-            <span>✔ {task.name}</span>
-          </div>
+      {/* Add Task Section (on top of both columns) */}
+    <div className="add-task-global">
+      <select
+        value={taskName}
+        onChange={(e) => setTaskName(e.target.value)}
+      >
+        <option value="">Select a Task</option>
+        {defaultTasks.map((task, idx) => (
+          <option key={idx} value={task}>
+            {task}
+          </option>
         ))}
+      </select>
+      <input
+        type="text"
+        placeholder="Or write your own task"
+        value={taskName}
+        onChange={(e) => setTaskName(e.target.value)}
+      />
+      <button onClick={addTask}>Add Task</button>
     </div>
 
-      {/* Rewards */}
-      <div className="reward-section">
-        <h2>🎁 Rewards</h2>
-        {stars >= 3 && <p>🥉 Bronze Badge Unlocked!</p>}
-        {stars >= 5 && <p>🥈 Silver Badge Unlocked!</p>}
-        {stars >= 8 && <p>🥇 Gold Badge Unlocked!</p>}
+    {/* Tasks Section */}
+    <div className="task-section">
+      {/* Tasks Column */}
+      <div className="tasks-column">
+        <h2 className="section-title">📝 Tasks</h2>
+
+        <div className="task-list">
+          {tasks
+            .map((task, i) => ({ ...task, index: i }))
+            .filter((task) => !task.done)
+            .map((task) => (
+              <div
+                key={task.index}
+                draggable
+                onDragStart={() => onDragStart(task.index)}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={() => onDrop(task.index)}
+                className="task"
+              >
+                <input
+                  type="checkbox"
+                  onChange={() => completeTask(task.index)}
+                />
+                <span>{task.name}</span>
+                <button
+                  className="delete-task-btn"
+                  onClick={() => deleteTask(task.index)}
+                >
+                  🗑️
+                </button>
+              </div>
+            ))}
+        </div>
+      </div>
+
+      {/* Completed Column */}
+      <div className="completed-column">
+        <h2 className="section-title">✅ Completed</h2>
+        <div className="task-list">
+          {tasks
+            .map((task, i) => ({ ...task, index: i }))
+            .filter((task) => task.done)
+            .map((task) => (
+              <div key={task.index} className="task done">
+                <span>✔ {task.name}</span>
+                <button
+                  className="delete-task-btn"
+                  onClick={() => deleteTask(task.index)}
+                >
+                  🗑️
+                </button>
+              </div>
+            ))}
+        </div>
+      </div>
+    </div>
+
+
+      {/* Bottom Row: Rewards */}
+      <div className="bottom-section">
+        <div className="reward-section">
+          <h2>🎁 Rewards</h2>
+          {stars >= 3 && <p>🥉 Bronze Badge Unlocked!</p>}
+          {stars >= 5 && <p>🥈 Silver Badge Unlocked!</p>}
+          {stars >= 8 && <p>🥇 Gold Badge Unlocked!</p>}
+        </div>
       </div>
     </div>
   );
