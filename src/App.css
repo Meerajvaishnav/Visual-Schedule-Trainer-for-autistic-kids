@@ -1,38 +1,68 @@
-.App {
+body {
+  background: #eef7ff;
+  font-family: Arial, sans-serif;
+}
+
+.login {
+  text-align: center;
+  margin-top: 100px;
+}
+
+.login button {
+  padding: 10px 20px;
+  font-size: 18px;
+}
+
+.container {
+  padding: 20px;
   text-align: center;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+.add-task input {
+  padding: 10px;
+  width: 250px;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+.add-task button {
+  padding: 10px;
+  margin-left: 5px;
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+.task-list {
+  max-width: 400px;
+  margin: auto;
+}
+
+.task {
+  background: white;
+  padding: 12px;
+  margin: 8px;
+  border-radius: 10px;
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
+  justify-content: space-between;
+  cursor: grab;
+}
+
+.task.done {
+  background: #b6f7c1;
+  text-decoration: line-through;
+}
+
+.task button {
+  background: #4caf50;
   color: white;
+  border: none;
+  border-radius: 5px;
 }
 
-.App-link {
-  color: #61dafb;
+.stars {
+  font-size: 20px;
+  margin: 10px;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.reward-section {
+  background: #fff3cd;
+  padding: 15px;
+  margin-top: 20px;
+  border-radius: 10px;
 }
