@@ -23,8 +23,6 @@ export default function App() {
   const deleteTask = (index) => {
     const updated = tasks.filter((_, i) => i !== index);
     setTasks(updated);
-
-    // Optional: adjust stars if the deleted task was completed
     if (tasks[index].done) {
       setStars((prev) => Math.max(prev - 1, 0));
     }
@@ -48,8 +46,6 @@ export default function App() {
     setTasks([...tasks, { name: taskName, done: false }]);
     setTaskName("");
   };
-
-  const [graffiti, setGraffiti] = useState(null);
   const completeTask = (i) => {
     const updated = [...tasks];
     updated[i].done = !updated[i].done;
@@ -57,9 +53,7 @@ export default function App() {
 
     if (updated[i].done) {
       setStars((prev) => prev + 1);
-      setGraffiti(updated[i].name);
-      setTimeout(() => setGraffiti(null), 800);
-    } else {
+      } else {
       setStars((prev) => Math.max(prev - 1, 0));
     }
   };
@@ -177,13 +171,6 @@ export default function App() {
           <p>📝 Total Tasks: {totalTasks}</p>
         </div>
       )}
-
-      {/* Graffiti Pop-up */}
-        {graffiti && (
-          <div className="graffiti">
-            ✨ {graffiti} Completed! ✨
-          </div>
-        )}
 
       <h1>Schedule Trainer</h1>
 
