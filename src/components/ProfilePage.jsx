@@ -39,7 +39,7 @@ export default function ProfilePage({ childName, age, favColor, favCartoon, setP
           style={styles.input}
           value={cartoon}
           onChange={(e) => setCartoon(e.target.value)}
-          placeholder="Favourite Cartoon"
+          placeholder="Favourite Cartoon Character"
         />
       </div>
 

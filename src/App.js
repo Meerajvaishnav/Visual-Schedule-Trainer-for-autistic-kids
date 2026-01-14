@@ -1,13 +1,9 @@
-import axios from "axios";
 import React, { useState, useEffect } from "react";
 import { Switch, Route, Link, useHistory } from "react-router-dom";
-
 
 import ProfilePage from "./components/ProfilePage";
 import RewardsPage from "./components/RewardsPage";
 import RoutinePage from "./components/RoutinePage";
-axios.defaults.baseURL = "http://localhost:5000";
-
 
 /* ---------------- DEFAULT TASKS ---------------- */
 const defaultTasks = [
@@ -45,39 +41,39 @@ export default function App() {
     favCartoon: "",
   });
 
-  /* ---------- LOAD DATA ---------- */
+  /* ---------- LOAD DATA FROM LOCALSTORAGE ---------- */
   useEffect(() => {
-    axios
-      .get("/profile")
-      .then((res) => {
-        if (res.data && res.data.childName) {
-          setProfile(res.data);
-          setLoggedIn(true);
-        }
-      })
-      .catch(() => console.log("No profile yet"));
+    const savedProfile = localStorage.getItem("profile");
+    const savedTasks = localStorage.getItem("tasks");
 
-    axios
-      .get("/tasks")
-      .then((res) => {
-        if (res.data.length > 0) {
-          setTasks(res.data);
-          setStars(res.data.filter((t) => t.done).length);
-        } else {
-          setTasks(defaultTasks.map((t) => ({ ...t, done: false })));
-        }
-      })
-      .catch(() => {
-        setTasks(defaultTasks.map((t) => ({ ...t, done: false })));
-      });
+    if (savedProfile) {
+      const parsedProfile = JSON.parse(savedProfile);
+      setProfile(parsedProfile);
+      setLoggedIn(true);
+    }
+
+    if (savedTasks) {
+      const parsedTasks = JSON.parse(savedTasks);
+      setTasks(parsedTasks);
+      setStars(parsedTasks.filter((t) => t.done).length);
+    } else {
+      setTasks(defaultTasks.map((t) => ({ ...t, done: false })));
+    }
   }, []);
 
-  /* ---------- SAVE TASKS ---------- */
+  /* ---------- SAVE TASKS TO LOCALSTORAGE ---------- */
   useEffect(() => {
     if (tasks.length > 0) {
-      axios.post("/tasks", tasks).catch(() => console.log("Save failed"));
+      localStorage.setItem("tasks", JSON.stringify(tasks));
     }
   }, [tasks]);
+
+  /* ---------- SAVE PROFILE TO LOCALSTORAGE ---------- */
+  useEffect(() => {
+    if (profile.childName) {
+      localStorage.setItem("profile", JSON.stringify(profile));
+    }
+  }, [profile]);
 
   /* ---------- TASK FUNCTIONS ---------- */
   const addTask = () => {
@@ -121,7 +117,7 @@ export default function App() {
           onChange={(e) => setProfile({ ...profile, favColor: e.target.value })}
         />
         <input
-          placeholder="Favorite Cartoon"
+          placeholder="Favorite Cartoon Character"
           value={profile.favCartoon}
           onChange={(e) => setProfile({ ...profile, favCartoon: e.target.value })}
         />
@@ -133,11 +129,8 @@ export default function App() {
               alert("Fill all details");
               return;
             }
-
-            axios.post("/profile", profile).then(() => {
-              setLoggedIn(true);
-              history.push("/");
-            });
+            setLoggedIn(true);
+            history.push("/");
           }}
         >
           Start My Day 🌟
