@@ -1,29 +1,16 @@
-import React, { useState } from "react";
+import axios from "axios";
+import React, { useState, useEffect } from "react";
 import { Switch, Route, Link, useHistory } from "react-router-dom";
+
 
 import ProfilePage from "./components/ProfilePage";
 import RewardsPage from "./components/RewardsPage";
 import RoutinePage from "./components/RoutinePage";
+axios.defaults.baseURL = "http://localhost:5000";
 
-// ---------------- App Component ----------------
-export default function App() {
-  const history = useHistory();
 
-  const [loggedIn, setLoggedIn] = useState(false);
-  const [stars, setStars] = useState(0);
-  const [tasks, setTasks] = useState([]);
-  const [taskName, setTaskName] = useState("");
-  const [taskTime, setTaskTime] = useState("morning");
-  const [childName, setChildName] = useState("");
-  const [age, setAge] = useState("");
-  const [favColor, setFavColor] = useState("");
-  const [favCartoon, setFavCartoon] = useState("");
-
-  const [showDashboard, setShowDashboard] = useState(false);
-
-  // ---------------- DEFAULT TASKS ----------------
-  const defaultTasks = [
-  // Morning Routine
+/* ---------------- DEFAULT TASKS ---------------- */
+const defaultTasks = [
   { name: "Wake Up 🌅", time: "morning" },
   { name: "Brush Teeth 🪥", time: "morning" },
   { name: "Wash Face 🧼", time: "morning" },
@@ -32,108 +19,125 @@ export default function App() {
   { name: "Put on Shoes 👟", time: "morning" },
   { name: "Make Bed 🛏️", time: "morning" },
   { name: "Eat Breakfast 🍳", time: "morning" },
-  { name: "Take Morning Medicine 💊", time: "morning" },
-
-  // School / Structured Activities
-  { name: "Pack School Bag 🎒", time: "morning" },
-  { name: "Pack Lunch 🍱", time: "morning" },
-  { name: "Go to School 🏫", time: "morning" },
   { name: "Do Homework ✏️", time: "afternoon" },
-  { name: "Read a Book 📖", time: "afternoon" },
-  { name: "Practice Letters/Numbers 🔤", time: "afternoon" },
   { name: "Art & Drawing 🎨", time: "afternoon" },
   { name: "Music Time 🎵", time: "afternoon" },
-
-  // Afternoon / Breaks
-  { name: "Eat Lunch 🍲", time: "afternoon" },
-  { name: "Drink Water 💧", time: "afternoon" },
-  { name: "Sensory Break 🌈", time: "afternoon" },
-  { name: "Quiet Time 🛋️", time: "afternoon" },
-  { name: "Play Outside ⚽", time: "afternoon" },
-  { name: "Exercise/Stretch 🏃‍♂️", time: "afternoon" },
-
-  // Evening / Family & Chores
   { name: "Eat Dinner 🍽️", time: "evening" },
-  { name: "Clean Room 🧹", time: "evening" },
-  { name: "Put Toys Away 🧸", time: "evening" },
   { name: "Take Shower 🛁", time: "evening" },
-  { name: "Brush Teeth 🪥", time: "evening" },
-  { name: "Pack Bag for Next Day 🎒", time: "evening" },
-
-  // Relaxation / Bedtime
-  { name: "Story Time 📚", time: "evening" },
-  { name: "Calm Breathing 🌬️", time: "evening" },
   { name: "Bedtime 🌙", time: "evening" },
-
-  // Optional Fun / Rewards
-  { name: "Sticker Chart ⭐", time: "afternoon" },
-  { name: "Play a Game 🎲", time: "afternoon" },
-  { name: "Listen to Favorite Song 🎶", time: "afternoon" },
-  { name: "Practice Hobby 🧩", time: "afternoon" },
-  { name: "Watch Cartoon 📺", time: "evening" },
-  { name: "Talk About Feelings 💬", time: "evening" },
 ];
 
+/* ---------------- MAIN APP ---------------- */
+export default function App() {
+  const history = useHistory();
 
-  const pastelColor = (color) =>
-    `linear-gradient(rgba(255,255,255,0.7), rgba(255,255,255,0.7)), ${color}`;
+  const [loggedIn, setLoggedIn] = useState(false);
+  const [stars, setStars] = useState(0);
 
-  // ---------------- TASK FUNCTIONS ----------------
+  const [tasks, setTasks] = useState([]);
+  const [taskName, setTaskName] = useState("");
+  const [taskTime, setTaskTime] = useState("morning");
+
+  const [profile, setProfile] = useState({
+    childName: "",
+    age: "",
+    favColor: "",
+    favCartoon: "",
+  });
+
+  /* ---------- LOAD DATA ---------- */
+  useEffect(() => {
+    axios
+      .get("/profile")
+      .then((res) => {
+        if (res.data && res.data.childName) {
+          setProfile(res.data);
+          setLoggedIn(true);
+        }
+      })
+      .catch(() => console.log("No profile yet"));
+
+    axios
+      .get("/tasks")
+      .then((res) => {
+        if (res.data.length > 0) {
+          setTasks(res.data);
+          setStars(res.data.filter((t) => t.done).length);
+        } else {
+          setTasks(defaultTasks.map((t) => ({ ...t, done: false })));
+        }
+      })
+      .catch(() => {
+        setTasks(defaultTasks.map((t) => ({ ...t, done: false })));
+      });
+  }, []);
+
+  /* ---------- SAVE TASKS ---------- */
+  useEffect(() => {
+    if (tasks.length > 0) {
+      axios.post("/tasks", tasks).catch(() => console.log("Save failed"));
+    }
+  }, [tasks]);
+
+  /* ---------- TASK FUNCTIONS ---------- */
   const addTask = () => {
     if (!taskName.trim()) return;
-    setTasks([...tasks, { name: taskName, done: false, time: taskTime }]);
+    setTasks([...tasks, { name: taskName, time: taskTime, done: false }]);
     setTaskName("");
-    setTaskTime("morning"); // reset to default
-  };
-
-  const deleteTask = (index) => {
-    if (tasks[index].done) setStars((prev) => Math.max(prev - 1, 0));
-    setTasks(tasks.filter((_, i) => i !== index));
   };
 
   const completeTask = (i) => {
     const updated = [...tasks];
     updated[i].done = !updated[i].done;
     setTasks(updated);
-    if (updated[i].done) setStars((prev) => prev + 1);
-    else setStars((prev) => Math.max(prev - 1, 0));
+    setStars(updated.filter((t) => t.done).length);
   };
 
-  // ---------------- LOGIN SCREEN ----------------
+  const deleteTask = (i) => {
+    const updated = tasks.filter((_, index) => index !== i);
+    setTasks(updated);
+    setStars(updated.filter((t) => t.done).length);
+  };
+
+  /* ---------------- LOGIN SCREEN ---------------- */
   if (!loggedIn) {
     return (
       <div className="login">
         <h1>🌈 Visual Schedule Trainer</h1>
 
         <input
-          placeholder="Your name is?"
-          value={childName}
-          onChange={(e) => setChildName(e.target.value)}
+          placeholder="Your Name"
+          value={profile.childName}
+          onChange={(e) => setProfile({ ...profile, childName: e.target.value })}
         />
         <input
-          placeholder="How old are you?"
-          value={age}
-          onChange={(e) => setAge(e.target.value)}
+          placeholder="Age"
+          value={profile.age}
+          onChange={(e) => setProfile({ ...profile, age: e.target.value })}
         />
         <input
-          placeholder="What's your Color?"
-          value={favColor}
-          onChange={(e) => setFavColor(e.target.value)}
+          placeholder="Favorite Color"
+          value={profile.favColor}
+          onChange={(e) => setProfile({ ...profile, favColor: e.target.value })}
         />
         <input
-          placeholder="Who's your Favourite Cartoon Character?"
-          value={favCartoon}
-          onChange={(e) => setFavCartoon(e.target.value)}
+          placeholder="Favorite Cartoon"
+          value={profile.favCartoon}
+          onChange={(e) => setProfile({ ...profile, favCartoon: e.target.value })}
         />
 
         <button
           onClick={() => {
+            const { childName, age, favColor, favCartoon } = profile;
             if (!childName || !age || !favColor || !favCartoon) {
-              alert("Please fill all details");
+              alert("Fill all details");
               return;
             }
-            setLoggedIn(true);
-            history.push("/");
+
+            axios.post("/profile", profile).then(() => {
+              setLoggedIn(true);
+              history.push("/");
+            });
           }}
         >
           Start My Day 🌟
@@ -142,28 +146,26 @@ export default function App() {
     );
   }
 
-  // ---------------- MAIN APP ----------------
+  /* ---------------- MAIN UI ---------------- */
   return (
     <>
-      {/* NAV BAR */}
       <nav className="menu-bar">
         <div className="menu-left">
-          <Link to="/" className="dashboard-button">
-            {childName}'s Dashboard
+          <Link className="dashboard-button" to="/">
+            🏠 Dashboard
           </Link>
-          <Link to="/profile" className="menu-btn">
+          <Link className="menu-btn" to="/profile">
             Profile
           </Link>
-          <Link to="/rewards" className="menu-btn">
+          <Link className="menu-btn" to="/rewards">
             Rewards
           </Link>
-          <Link to="/routine" className="menu-btn">
+          <Link className="menu-btn" to="/routine">
             Routine
           </Link>
         </div>
-
         <div className="menu-right">
-          <span>⭐ {stars}</span>
+          ⭐ {stars}
           <button className="logout-btn" onClick={() => setLoggedIn(false)}>
             Logout
           </button>
@@ -174,42 +176,24 @@ export default function App() {
         <Route exact path="/">
           <Dashboard
             tasks={tasks}
+            addTask={addTask}
             taskName={taskName}
             setTaskName={setTaskName}
             taskTime={taskTime}
             setTaskTime={setTaskTime}
-            addTask={addTask}
             completeTask={completeTask}
             deleteTask={deleteTask}
+            childName={profile.childName}
             stars={stars}
-            childName={childName}
-            age={age}
-            favColor={favColor}
-            favCartoon={favCartoon}
-            showDashboard={showDashboard}
-            setShowDashboard={setShowDashboard}
-            defaultTasks={defaultTasks}
-            pastelColor={pastelColor}
           />
         </Route>
 
         <Route path="/profile">
-          <ProfilePage
-            childName={childName}
-            age={age}
-            favColor={favColor}
-            favCartoon={favCartoon}
-            setProfile={({ childName, age, favColor, favCartoon }) => {
-              setChildName(childName);
-              setAge(age);
-              setFavColor(favColor);
-              setFavCartoon(favCartoon);
-            }}
-          />
+          <ProfilePage profile={profile} setProfile={setProfile} />
         </Route>
 
         <Route path="/rewards">
-          <RewardsPage stars={stars} favCartoon={favCartoon} />
+          <RewardsPage stars={stars} favCartoon={profile.favCartoon} />
         </Route>
 
         <Route path="/routine">
@@ -220,7 +204,7 @@ export default function App() {
   );
 }
 
-// ---------------- DASHBOARD ----------------
+/* ---------------- DASHBOARD ---------------- */
 function Dashboard({
   tasks,
   taskName,
@@ -230,62 +214,28 @@ function Dashboard({
   addTask,
   completeTask,
   deleteTask,
-  stars,
   childName,
-  age,
-  favColor,
-  favCartoon,
-  showDashboard,
-  setShowDashboard,
-  defaultTasks,
-  pastelColor,
+  stars,
 }) {
-  const pendingTasks = tasks.filter((t) => !t.done);
-  const completedTasks = tasks.filter((t) => t.done);
+  const pending = tasks.filter((t) => !t.done);
+  const completed = tasks.filter((t) => t.done);
 
   return (
-    <div
-      className="container"
-      style={{ background: pastelColor(favColor), minHeight: "100vh" }}
-    >
-      {/* ---------- Header ---------- */}
-      <header className="dashboard-header">
-        <div>
-          <h1>{childName}'s Schedule</h1>
-          <p>⭐ Stars: {stars}</p>
-        </div>
-        <button
-          className="dashboard-toggle"
-          onClick={() => setShowDashboard((p) => !p)}
-        >
-          Child Info
-        </button>
-      </header>
+    <div className="container">
+      <h1>
+        {childName}'s Schedule ⭐ {stars}
+      </h1>
 
-      {/* ---------- Child Info Dropdown ---------- */}
-      {showDashboard && (
-        <div className="dashboard-dropdown">
-          <p>🎂 Age: {age}</p>
-          <p>📺 Cartoon Character: {favCartoon}</p>
-          <p>🎨 Favourite Colour: {favColor}</p>
-          <p>📝 Total Tasks: {tasks.length}</p>
-          <p>✅ Completed: {completedTasks.length}</p>
-        </div>
-      )}
-
-      {/* ---------- Add Task Section ---------- */}
       <div className="add-task-global">
         <select
           value={taskName}
           onChange={(e) => {
-            const selectedTask = defaultTasks.find(
-              (t) => t.name === e.target.value
-            );
+            const selected = defaultTasks.find((t) => t.name === e.target.value);
             setTaskName(e.target.value);
-            if (selectedTask) setTaskTime(selectedTask.time);
+            if (selected) setTaskTime(selected.time);
           }}
         >
-          <option value="">Choose task</option>
+          <option value="">Choose Task</option>
           {defaultTasks.map((t, i) => (
             <option key={i} value={t.name}>
               {t.name}
@@ -293,56 +243,38 @@ function Dashboard({
           ))}
         </select>
 
-        <select
-          value={taskTime}
-          onChange={(e) => setTaskTime(e.target.value)}
-        >
+        <select value={taskTime} onChange={(e) => setTaskTime(e.target.value)}>
           <option value="morning">Morning 🌅</option>
           <option value="afternoon">Afternoon ☀️</option>
           <option value="evening">Evening 🌙</option>
         </select>
 
-        <input
-          value={taskName}
-          onChange={(e) => setTaskName(e.target.value)}
-          placeholder="Or type your own"
-        />
-
-        <button onClick={addTask}>Add</button>
+        <button onClick={addTask}>Add Task</button>
       </div>
 
-      {/* ---------- Tasks Columns ---------- */}
       <div className="task-columns">
-        {/* Pending Tasks */}
-        <div className="task-section pending-tasks">
+        <div className="task-section">
           <h2>📝 To Do</h2>
-          {pendingTasks.length === 0 && <p>All done! 🎉</p>}
-          {pendingTasks.map((t, i) => (
-            <div key={i} className="task">
-              <input
-                type="checkbox"
-                checked={t.done}
-                onChange={() => completeTask(tasks.indexOf(t))}
-              />
-              <span>{t.name}</span>
-              <button onClick={() => deleteTask(tasks.indexOf(t))}>🗑</button>
+          {pending.map((t, i) => (
+            <div className="task" key={i}>
+              <input type="checkbox" checked={false} onChange={() => completeTask(tasks.indexOf(t))} />
+              {t.name}
+              <button className="delete-task-btn" onClick={() => deleteTask(tasks.indexOf(t))}>
+                🗑
+              </button>
             </div>
           ))}
         </div>
 
-        {/* Completed Tasks */}
-        <div className="task-section completed-tasks">
+        <div className="task-section">
           <h2>✅ Done</h2>
-          {completedTasks.length === 0 && <p>No tasks completed yet.</p>}
-          {completedTasks.map((t, i) => (
-            <div key={i} className="task done">
-              <input
-                type="checkbox"
-                checked={t.done}
-                onChange={() => completeTask(tasks.indexOf(t))}
-              />
-              <span>{t.name}</span>
-              <button onClick={() => deleteTask(tasks.indexOf(t))}>🗑</button>
+          {completed.map((t, i) => (
+            <div className="task done" key={i}>
+              <input type="checkbox" checked={true} onChange={() => completeTask(tasks.indexOf(t))} />
+              {t.name}
+              <button className="delete-task-btn" onClick={() => deleteTask(tasks.indexOf(t))}>
+                🗑
+              </button>
             </div>
           ))}
         </div>
