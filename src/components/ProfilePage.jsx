@@ -1,14 +1,42 @@
 import React from "react";
 
-export default function ProfilePage({ childName, age, favColor, favCartoon, setProfile }) {
-  const [name, setName] = React.useState(childName);
-  const [newAge, setNewAge] = React.useState(age);
-  const [color, setColor] = React.useState(favColor);
-  const [cartoon, setCartoon] = React.useState(favCartoon);
+export default function ProfilePage({ profile, setProfile }) {
+  const [name, setName] = React.useState(profile.childName);
+  const [newAge, setNewAge] = React.useState(profile.age);
+  const [color, setColor] = React.useState(profile.favColor);
+  const [cartoon, setCartoon] = React.useState(profile.favCartoon);
 
-  const saveProfile = () => {
-    setProfile({ childName: name, age: newAge, favColor: color, favCartoon: cartoon });
-    alert("Profile Updated!");
+  const saveProfile = async () => {
+    const updatedProfile = {
+      ...profile,
+      childName: name,
+      age: newAge,
+      favColor: color,
+      favCartoon: cartoon
+    };
+
+    setProfile(updatedProfile);
+    localStorage.setItem("profile", JSON.stringify(updatedProfile));
+
+    if (profile._id) {
+      try {
+        const res = await fetch(`http://127.0.0.1:5001/api/profiles/${profile._id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(updatedProfile),
+        });
+        if (res.ok) {
+          alert("Profile Updated & Synced to Cloud! ✨");
+        } else {
+          alert("Profile updated locally, but failed to sync.");
+        }
+      } catch (err) {
+        console.error("Sync error:", err);
+        alert("Profile updated locally, but backend error occurred.");
+      }
+    } else {
+      alert("Profile Updated! (local only)");
+    }
   };
 
   return (
@@ -53,45 +81,49 @@ export default function ProfilePage({ childName, age, favColor, favCartoon, setP
 // ---------- Inline CSS ----------
 const styles = {
   container: {
-    padding: "30px 20px",
-    maxWidth: "400px",
-    margin: "20px auto",
-    borderRadius: "20px",
-    background: "linear-gradient(135deg, #a1c4fd, #c2e9fb)", // soft fun gradient
-    boxShadow: "0 8px 20px rgba(0,0,0,0.15)",
+    padding: "40px 30px",
+    maxWidth: "500px",
+    margin: "40px auto",
+    borderRadius: "var(--border-radius-lg)",
+    background: "var(--card-bg)",
+    boxShadow: "var(--shadow-lg)",
     textAlign: "center",
-    fontFamily: "'Comic Sans MS', cursive, sans-serif",
+    fontFamily: "var(--font-family)",
+    border: "1px solid rgba(255, 255, 255, 0.5)",
   },
   header: {
-    fontSize: "2rem",
-    marginBottom: "20px",
-    color: "#ff6f61",
-    textShadow: "1px 1px #fff",
+    fontSize: "2.2rem",
+    marginBottom: "30px",
+    color: "var(--accent-color)",
+    fontWeight: "700",
   },
   inputGroup: {
     display: "flex",
     flexDirection: "column",
     gap: "15px",
-    marginBottom: "25px",
+    marginBottom: "30px",
   },
   input: {
-    padding: "12px 15px",
-    borderRadius: "12px",
-    border: "2px solid #ccc",
+    padding: "14px 20px",
+    borderRadius: "var(--border-radius-md)",
+    border: "2px solid #edeff2",
     fontSize: "16px",
+    fontFamily: "inherit",
     outline: "none",
-    transition: "border 0.3s, box-shadow 0.3s",
+    transition: "all 0.3s ease",
+    background: "white",
   },
   button: {
-    padding: "12px 25px",
-    fontSize: "18px",
-    borderRadius: "12px",
+    padding: "16px 30px",
+    fontSize: "1.1rem",
+    borderRadius: "var(--border-radius-md)",
     border: "none",
     background: "linear-gradient(135deg, #ffb347, #ffcc33)",
     color: "#fff",
-    fontWeight: "bold",
+    fontWeight: "700",
     cursor: "pointer",
-    transition: "transform 0.2s, box-shadow 0.2s",
+    transition: "all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
+    boxShadow: "0 10px 20px rgba(255, 179, 71, 0.2)",
   },
 };
 

@@ -41,58 +41,87 @@ export default function App() {
     favCartoon: "",
   });
 
-  /* ---------- LOAD DATA FROM LOCALSTORAGE ---------- */
+  /* ---------- LOAD DATA FROM BACKEND OR LOCALSTORAGE ---------- */
   useEffect(() => {
     const savedProfile = localStorage.getItem("profile");
-    const savedTasks = localStorage.getItem("tasks");
 
-    if (savedProfile) {
-      const parsedProfile = JSON.parse(savedProfile);
-      setProfile(parsedProfile);
-      setLoggedIn(true);
-    }
+    const loadData = async () => {
+      if (savedProfile) {
+        const parsedProfile = JSON.parse(savedProfile);
+        if (parsedProfile._id) {
+          try {
+            const res = await fetch(`http://127.0.0.1:5001/api/profiles/${parsedProfile._id}`);
+            if (res.ok) {
+              const data = await res.json();
+              setProfile(data);
+              setTasks(data.tasks || []);
+              setStars(data.stars || 0);
+              setLoggedIn(true);
+              return;
+            }
+          } catch (err) {
+            console.error("Failed to fetch profile from backend:", err);
+          }
+        }
+        // Fallback to local storage if backend fetch fails or no ID
+        setProfile(parsedProfile);
+      }
 
-    if (savedTasks) {
-      const parsedTasks = JSON.parse(savedTasks);
-      setTasks(parsedTasks);
-      setStars(parsedTasks.filter((t) => t.done).length);
-    } else {
-      setTasks(defaultTasks.map((t) => ({ ...t, done: false })));
-    }
+      const savedTasks = localStorage.getItem("tasks");
+      if (savedTasks) {
+        const parsedTasks = JSON.parse(savedTasks);
+        setTasks(parsedTasks);
+        setStars(parsedTasks.filter((t) => t.done).length);
+      } else {
+        setTasks(defaultTasks.map((t) => ({ ...t, done: false })));
+      }
+    };
+
+    loadData();
   }, []);
 
-  /* ---------- SAVE TASKS TO LOCALSTORAGE ---------- */
-  useEffect(() => {
-    if (tasks.length > 0) {
-      localStorage.setItem("tasks", JSON.stringify(tasks));
+  /* ---------- SYNC DATA TO BACKEND ---------- */
+  const syncToBackend = async (updatedProfile, updatedTasks, updatedStars) => {
+    if (!updatedProfile._id) return;
+    try {
+      await fetch(`http://127.0.0.1:5001/api/profiles/${updatedProfile._id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...updatedProfile,
+          tasks: updatedTasks,
+          stars: updatedStars
+        }),
+      });
+    } catch (err) {
+      console.error("Sync to backend failed:", err);
     }
-  }, [tasks]);
-
-  /* ---------- SAVE PROFILE TO LOCALSTORAGE ---------- */
-  useEffect(() => {
-    if (profile.childName) {
-      localStorage.setItem("profile", JSON.stringify(profile));
-    }
-  }, [profile]);
+  };
 
   /* ---------- TASK FUNCTIONS ---------- */
   const addTask = () => {
     if (!taskName.trim()) return;
-    setTasks([...tasks, { name: taskName, time: taskTime, done: false }]);
+    const newTasks = [...tasks, { name: taskName, time: taskTime, done: false }];
+    setTasks(newTasks);
     setTaskName("");
+    syncToBackend(profile, newTasks, stars);
   };
 
   const completeTask = (i) => {
     const updated = [...tasks];
     updated[i].done = !updated[i].done;
+    const newStars = updated.filter((t) => t.done).length;
     setTasks(updated);
-    setStars(updated.filter((t) => t.done).length);
+    setStars(newStars);
+    syncToBackend(profile, updated, newStars);
   };
 
   const deleteTask = (i) => {
     const updated = tasks.filter((_, index) => index !== i);
+    const newStars = updated.filter((t) => t.done).length;
     setTasks(updated);
-    setStars(updated.filter((t) => t.done).length);
+    setStars(newStars);
+    syncToBackend(profile, updated, newStars);
   };
 
   /* ---------------- LOGIN SCREEN ---------------- */
@@ -123,18 +152,41 @@ export default function App() {
         />
 
         <button
-          onClick={() => {
+          onClick={async () => {
             const { childName, age, favColor, favCartoon } = profile;
             if (!childName || !age || !favColor || !favCartoon) {
               alert("Fill all details");
               return;
             }
-            setLoggedIn(true);
-            history.push("/");
+            try {
+              const res = await fetch("http://127.0.0.1:5001/api/profiles/start", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  ...profile,
+                  stars: 0,
+                  tasks: tasks.length > 0 ? tasks : defaultTasks.map(t => ({ ...t, done: false }))
+                }),
+              });
+              const savedProfile = await res.json();
+              console.log("Saved to MongoDB:", savedProfile);
+              setProfile(savedProfile);   // now profile has _id from MongoDB
+              localStorage.setItem("profile", JSON.stringify(savedProfile));
+              setTasks(savedProfile.tasks || []);
+              setStars(savedProfile.stars || 0);
+              setLoggedIn(true);
+              history.push("/");
+            } catch (err) {
+              console.error("MongoDB save error:", err);
+              alert("Backend not running!");
+            }
           }}
         >
           Start My Day 🌟
         </button>
+
       </div>
     );
   }
@@ -251,7 +303,7 @@ function Dashboard({
           {pending.map((t, i) => (
             <div className="task" key={i}>
               <input type="checkbox" checked={false} onChange={() => completeTask(tasks.indexOf(t))} />
-              {t.name}
+              <span>{t.name}</span>
               <button className="delete-task-btn" onClick={() => deleteTask(tasks.indexOf(t))}>
                 🗑
               </button>
@@ -264,7 +316,7 @@ function Dashboard({
           {completed.map((t, i) => (
             <div className="task done" key={i}>
               <input type="checkbox" checked={true} onChange={() => completeTask(tasks.indexOf(t))} />
-              {t.name}
+              <span>{t.name}</span>
               <button className="delete-task-btn" onClick={() => deleteTask(tasks.indexOf(t))}>
                 🗑
               </button>
