@@ -4,6 +4,8 @@ import { Switch, Route, Link, useHistory } from "react-router-dom";
 import ProfilePage from "./components/ProfilePage";
 import RewardsPage from "./components/RewardsPage";
 import RoutinePage from "./components/RoutinePage";
+import AddTaskPage from "./components/AddTaskPage";
+import TaskPreviewCard from "./components/TaskPreviewCard";
 
 /* ---------------- DEFAULT TASKS ---------------- */
 const defaultTasks = [
@@ -208,6 +210,9 @@ export default function App() {
           <Link className="menu-btn" to="/routine">
             Routine
           </Link>
+          <Link className="menu-btn" to="/add-task">
+            ＋ Add New Task
+          </Link>
         </div>
         <div className="menu-right">
           ⭐ {stars}
@@ -243,6 +248,26 @@ export default function App() {
 
         <Route path="/routine">
           <RoutinePage tasks={tasks} setTasks={setTasks} />
+        </Route>
+
+        <Route path="/add-task">
+          <AddTaskPage
+            tasks={tasks}
+            setTasks={setTasks}
+            profile={profile}
+            syncToBackend={syncToBackend}
+          />
+        </Route>
+
+        <Route path="/preview">
+          <div className="container">
+            <h2>Preview Component</h2>
+            <TaskPreviewCard
+              taskName="Sample Task"
+              timeSlot="Morning"
+              icon="🍽️"
+            />
+          </div>
         </Route>
       </Switch>
     </>
