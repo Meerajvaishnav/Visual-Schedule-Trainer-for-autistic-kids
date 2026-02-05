@@ -6,12 +6,14 @@ export default function ProfilePage({ profile, setProfile }) {
   const [color, setColor] = React.useState(profile.favColor);
   const [cartoon, setCartoon] = React.useState(profile.favCartoon);
 
-  // Sync local state when profile prop changes (Auto-fill)
+  // Sync local state when profile prop changes (Auto-fill on first render/async fetch)
   React.useEffect(() => {
-    setName(profile.childName || "");
-    setNewAge(profile.age || "");
-    setColor(profile.favColor || "");
-    setCartoon(profile.favCartoon || "");
+    if (profile) {
+      setName(profile.childName || "");
+      setNewAge(profile.age || "");
+      setColor(profile.favColor || "");
+      setCartoon(profile.favCartoon || "");
+    }
   }, [profile]);
 
   const saveProfile = async () => {
