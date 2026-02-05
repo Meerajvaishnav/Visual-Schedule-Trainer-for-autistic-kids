@@ -52,7 +52,7 @@ export default function App() {
         const parsedProfile = JSON.parse(savedProfile);
         if (parsedProfile._id) {
           try {
-            const res = await fetch(`http://127.0.0.1:5001/api/profiles/${parsedProfile._id}`);
+            const res = await fetch(`/api/profiles/${parsedProfile._id}`);
             if (res.ok) {
               const data = await res.json();
               setProfile(data);
@@ -86,7 +86,7 @@ export default function App() {
   const syncToBackend = async (updatedProfile, updatedTasks, updatedStars) => {
     if (!updatedProfile._id) return;
     try {
-      await fetch(`http://127.0.0.1:5001/api/profiles/${updatedProfile._id}`, {
+      await fetch(`/api/profiles/${updatedProfile._id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -161,7 +161,7 @@ export default function App() {
               return;
             }
             try {
-              const res = await fetch("http://127.0.0.1:5001/api/profiles/start", {
+              const res = await fetch("/api/profiles/start", {
                 method: "POST",
                 headers: {
                   "Content-Type": "application/json",

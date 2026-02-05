@@ -20,7 +20,7 @@ export default function ProfilePage({ profile, setProfile }) {
 
     if (profile._id) {
       try {
-        const res = await fetch(`http://127.0.0.1:5001/api/profiles/${profile._id}`, {
+        const res = await fetch(`/api/profiles/${profile._id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(updatedProfile),
