@@ -12,7 +12,7 @@ export default function RewardsPage({ stars, favCartoon }) {
     <div className="rewards-page">
       {/* Big cute congratulatory message */}
       <div className="congrats-message">
-        <h1>🎉 Yay, {favCartoon} says Congrats! 🎉</h1>
+        <h1>🎉 Yay, {favCartoon || "your friend"} says Congratulations! 🎉</h1>
         <p>You're doing amazing! Keep earning those stars! 🌟</p>
       </div>
 
