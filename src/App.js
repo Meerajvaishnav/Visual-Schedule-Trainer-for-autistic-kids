@@ -6,6 +6,7 @@ import RewardsPage from "./components/RewardsPage";
 import RoutinePage from "./components/RoutinePage";
 import AddTaskPage from "./components/AddTaskPage";
 import TaskPreviewCard from "./components/TaskPreviewCard";
+import MathGarden from "./components/MathGarden";
 
 /* ---------------- DEFAULT TASKS ---------------- */
 const defaultTasks = [
@@ -213,6 +214,9 @@ export default function App() {
           <Link className="menu-btn" to="/add-task">
             ＋ Add New Task
           </Link>
+          <Link className="menu-btn" to="/math-garden">
+            🌱 Math Garden
+          </Link>
         </div>
         <div className="menu-right">
           ⭐ {stars}
@@ -268,6 +272,10 @@ export default function App() {
               icon="🍽️"
             />
           </div>
+        </Route>
+
+        <Route path="/math-garden">
+          <MathGarden />
         </Route>
       </Switch>
     </>
